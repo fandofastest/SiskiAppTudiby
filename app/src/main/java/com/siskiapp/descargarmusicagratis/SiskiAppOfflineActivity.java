@@ -7,8 +7,11 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -34,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.siskiapp.descargarmusicagratis.SiskiAppSplashActivity.PERCODE;
+import static com.siskiapp.descargarmusicagratis.SiskiAppSplashActivity.id_banner;
 
 public class SiskiAppOfflineActivity extends AppCompatActivity {
 
@@ -41,9 +45,10 @@ public class SiskiAppOfflineActivity extends AppCompatActivity {
     RecyclerView recView;
     RelativeLayout banner;
     TrackAdapterOffline mAdapterOffline;
-    List<Object> listOffline;
+    List<Object> listOffline = new ArrayList<>();
     ProgressDialog mProgressDialog;
     TextView noSong;
+    TrackOffline trackOffline;
 
     com.google.android.gms.ads.AdView adView;
     com.facebook.ads.AdView fbView;
@@ -103,6 +108,8 @@ public class SiskiAppOfflineActivity extends AppCompatActivity {
             AdRequest dareq = new AdRequest.Builder().build();
             banner.addView(adView);
             adView.loadAd(dareq);
+
+            Log.e("errr",id_banner);
         }
 
 
@@ -115,21 +122,23 @@ public class SiskiAppOfflineActivity extends AppCompatActivity {
         listOffline = new ArrayList<>();
         mAdapterOffline = new TrackAdapterOffline(this, listOffline);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.System.canWrite(this)) {
-                requestPermissions(new String[]{
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                }, PERCODE);
-
-            } else {
-                new LoadDownloadedData().execute();
-            }
-        } else {
-            new LoadDownloadedData().execute();
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            if (!Settings.System.canWrite(this)) {
+//                requestPermissions(new String[]{
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                        Manifest.permission.READ_EXTERNAL_STORAGE,
+//                }, PERCODE);
+//
+//            } else {
+//                new LoadDownloadedData().execute();
+//            }
+//        } else {
+//            new LoadDownloadedData().execute();
+//        }
 
         recView.setAdapter(mAdapterOffline);
+
+        getMusic();
 
     }
 
@@ -137,67 +146,94 @@ public class SiskiAppOfflineActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERCODE) {
-            new LoadDownloadedData().execute();
+
         }
     }
 
-    @SuppressLint("StaticFieldLeak")
-    public class LoadDownloadedData extends AsyncTask<Void, Void, Void> {
-        TrackOffline trackOffline;
-        String card = SiskiAppSplashActivity.folder;
-        ArrayList<String> files = GetFiles(card);
+//    @SuppressLint("StaticFieldLeak")
+//    public class LoadDownloadedData extends AsyncTask<Void, Void, Void> {
+//        String card = SiskiAppSplashActivity.folder;
+//        ArrayList<String> files = GetFiles(card);
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Void... params) {
+//            listOffline.clear();
+//
+//            if (files != null) {
+//                for (int x = 0; x < files.size(); x++) {
+//                    String judullagu = files.get(x);
+//                    String url_song = card + "/" + files.get(x);
+//                    trackOffline = new TrackOffline(judullagu, url_song);
+//                    listOffline.add(trackOffline);
+//                    Log.d("Title Songs", url_song);
+//                }
+//            }
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//            if (listOffline.size() < 1) {
+//                listOffline.clear();
+//                noSong.setVisibility(View.VISIBLE);
+//            } else {
+//                noSong.setVisibility(View.GONE);
+//                mAdapterOffline.notifyDataSetChanged();
+//            }
+//        }
+//
+//    }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
+    public void getMusic(){
 
-        @Override
-        protected Void doInBackground(Void... params) {
-            listOffline.clear();
+        listOffline.clear();
+        recView.removeAllViews();
 
-            if (files != null) {
-                for (int x = 0; x < files.size(); x++) {
-                    String judullagu = files.get(x);
-                    String url_song = card + "/" + files.get(x);
-                    trackOffline = new TrackOffline(judullagu, url_song);
+
+        Uri allSongsUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+        Cursor cursor =  SiskiAppOfflineActivity.this.getContentResolver().query(allSongsUri, null, null, null, selection);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+
+                    trackOffline = new TrackOffline(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)), cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
                     listOffline.add(trackOffline);
-                    Log.d("Title Songs", url_song);
-                }
+
+
+
+
+                } while (cursor.moveToNext());
             }
-            return null;
+            cursor.close();
         }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            if (listOffline.size() < 1) {
-                listOffline.clear();
-                noSong.setVisibility(View.VISIBLE);
-            } else {
-                noSong.setVisibility(View.GONE);
-                mAdapterOffline.notifyDataSetChanged();
-            }
-        }
-
+        mAdapterOffline.notifyDataSetChanged();
     }
 
-    public ArrayList<String> GetFiles(String directorypath) {
-        ArrayList<String> Myfiles = new ArrayList<String>();
-        File f = new File(directorypath);
 
-        File[] files = f.listFiles();
-        for (int i = 0; i < files.length; i++) {
-
-            String filename = files[i].getName();
-            String ext = filename.substring(filename.lastIndexOf('.') + 1, filename.length());
-            if (ext.equals("MP3") || ext.equals("mp3")) {
-                Myfiles.add(files[i].getName());
-            }
-        }
-
-        return Myfiles;
-    }
+//    public ArrayList<String> GetFiles(String directorypath) {
+//        ArrayList<String> Myfiles = new ArrayList<String>();
+//        File f = new File(directorypath);
+//
+//        File[] files = f.listFiles();
+//        for (int i = 0; i < files.length; i++) {
+//
+//            String filename = files[i].getName();
+//            String ext = filename.substring(filename.lastIndexOf('.') + 1, filename.length());
+//            if (ext.equals("MP3") || ext.equals("mp3")) {
+//                Myfiles.add(files[i].getName());
+//            }
+//        }
+//
+//        return Myfiles;
+//    }
 
     public void Exit() {
         new AlertDialog.Builder(SiskiAppOfflineActivity.this)

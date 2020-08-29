@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -153,8 +154,10 @@ public class SiskiAppPlayActivityOffline extends AppCompatActivity implements Se
                 mediaPlayer.setDataSource(trackUrl + "&key=" + SiskiAppSplashActivity.sc);
                 mediaPlayer.prepareAsync();
             } else {
-                mediaPlayer.setDataSource(trackUrl);
+                Uri myUri = Uri.parse(trackUrl);
+                mediaPlayer.setDataSource(getApplicationContext(),myUri);
                 mediaPlayer.prepare();
+                Log.e("seeee",trackUrl);
             }
 
         } catch (IOException e) {

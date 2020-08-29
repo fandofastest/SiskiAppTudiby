@@ -1,5 +1,6 @@
 package com.siskiapp.descargarmusicagratis;
 
+import android.Manifest;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -13,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.cardview.widget.CardView;
+
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -58,6 +61,14 @@ public class SiskiAppMainActivity extends AppCompatActivity {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(Color.TRANSPARENT);
+        }
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.System.canWrite(this)) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE}, 2909);
+            }
         }
 
         searchview = findViewById(R.id.searchView);

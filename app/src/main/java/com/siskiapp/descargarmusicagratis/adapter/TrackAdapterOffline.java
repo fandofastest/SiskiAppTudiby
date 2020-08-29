@@ -7,6 +7,8 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,6 +63,8 @@ public class TrackAdapterOffline extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         final ViewHolder offlineViewHolder = (ViewHolder)holder;
         final TrackOffline trackoff = (TrackOffline)listOffline.get(position);
+
+        Log.e("eeeee",trackoff.getSongUrl());
 
         offlineViewHolder.songTitle.setText(trackoff.getSongTitle());
 
